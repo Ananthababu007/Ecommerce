@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5 pt-5">
+    <h2 class="text-center text-dark mb-4 custom-heading" data-aos="fade-up">Your Orders</h2>
+
+    {% if orders_data %}
+    {% for order_data in orders_data %}
+    <div class="card my-4 shadow-lg border-light custom-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="card-header bg-light text-dark">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>Order ID:</strong> {{ order_data.order.order_id }} <br>
+                    <strong>Order Date:</strong> {{ order_data.order.order_date }} <br>
+                    <strong>Estimated Delivery:</strong> {{ order_data.estimated_delivery_date }}
+                </div>
+                <div class="text-end">
+                    <strong>Status:</strong> {{ order_data.order.status }} <br>
+                    <strong>Total Price:</strong> ₹{{ order_data.order.total_price }}
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <h5 class="text-dark">Items:</h5>
+            <ul class="list-group">
+                {% for order_item in order_data.order_items %}
+                <li class="list-group-item d-flex justify-content-between align-items-center custom-item" data-aos="fade-up" data-aos-delay="200">
+                    <div class="d-flex align-items-center">
+                        {% if order_item.product_image %}
+                        <img src="{{ order_item.product_image }}" alt="{{ order_item.item.product.title }}" width="80" height="80" class="rounded">
+                        {% else %}
+                        <img src="{% static 'logo.png' %}" alt="No Image Available" width="80" height="80" class="rounded">
+                        {% endif %}
+                        <div class="ms-3">
+                            <strong>{{ order_item.item.product.title }}</strong><br>
+                            <p class="text-muted">{{ order_item.item.product.description|truncatewords:10 }}</p>
+                            <span>{{ order_item.item.quantity }} x ₹{{ order_item.item.price }}</span>
+                        </div>
+                    </div>
+                    <span><strong>Subtotal:</strong> ₹{{ order_item.subtotal }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+
+            <!-- Flipkart-like Order Progress Bar -->
+            <div class="my-4" data-aos="fade-up" data-aos-delay="300">
+                <label for="progress" class="font-weight-bold text-muted">Order Progress</label>
+                <div class="progress-container">
+                    <div class="progress-line" style="width: {{ order_data.progress_percentage }}%;"></div>
+                    <div class="progress-points">
+                        <div class="progress-step {% if order_data.order.status == 'Pending' or order_data.progress_percentage >= 25 %}completed{% endif %}">
+                            <span class="progress-icon">1</span>
+                            <span class="progress-label">Pending</span>
+                        </div>
+                        <div class="progress-step {% if order_data.order.status == 'Processing' or order_data.progress_percentage >= 50 %}completed{% endif %}">
+                            <span class="progress-icon">2</span>
+                            <span class="progress-label">Processing</span>
+                        </div>
+                        <div class="progress-step {% if order_data.order.status == 'Shipped' or order_data.progress_percentage >= 75 %}completed{% endif %}">
+                            <span class="progress-icon">3</span>
+                            <span class="progress-label">Shipped</span>
+                        </div>
+                        <div class="progress-step {% if order_data.order.status == 'Delivered' or order_data.progress_percentage == 100 %}completed{% endif %}">
+                            <span class="progress-icon">4</span>
+                            <span class="progress-label">Delivered</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="text-center" data-aos="fade-up">No orders found.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    /* General Container Styling */
+    .container {
+        margin-top: 100px;
+        margin-bottom: 50px;
+    }
+
+    /* Custom Heading */
+    .custom-heading {
+        font-family: 'Arial', sans-serif;
+        font-size: 30px;
+        font-weight: 700;
+    }
+
+    /* Card Styling */
+    .custom-card {
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #e0e0e0;
+    }
+
+    .card-header {
+        background-color: #f8f9fa; /* Light Gray Header */
+        color: #343a40; /* Dark text for better contrast */
+        font-size: 14px;
+        font-weight: bold;
+        padding: 15px;
+    }
+
+    .card-body {
+        background-color: #fff;
+        padding: 20px;
+    }
+
+    .list-group-item {
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        margin-bottom: 10px;
+        background-color: #fff;
+        border-radius: 8px;
+    }
+
+    .list-group-item .d-flex {
+        display: flex;
+        align-items: center;
+    }
+
+    .list-group-item img {
+        border-radius: 8px;
+    }
+
+    /* Flipkart-like Progress Bar */
+    .progress-container {
+        position: relative;
+        margin-top: 30px;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .progress-line {
+        height: 4px;
+        background: linear-gradient(90deg, #28a745, #28a745);
+        border-radius: 2px;
+        position: absolute;
+        top: 50%;
+        left: 0;
+        z-index: 1;
+        transition: width 0.3s ease;
+    }
+
+    .progress-points {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        z-index: 2;
+    }
+
+    .progress-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+    }
+
+    .progress-icon {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        background-color: #e0e0e0;
+        color: #000;
+        font-size: 14px;
+        font-weight: bold;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .progress-step.completed .progress-icon {
+        background-color: #28a745;
+        color: #fff;
+    }
+
+    .progress-label {
+        margin-top: 8px;
+        font-size: 14px;
+        color: #555;
+        text-align: center;
+    }
+
+    .card.shadow-lg {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Responsive Styling */
+    @media (max-width: 768px) {
+        .card-header {
+            font-size: 12px;
+        }
+
+        .list-group-item {
+            font-size: 14px;
+        }
+
+        .progress-icon {
+            width: 25px;
+            height: 25px;
+            font-size: 12px;
+        }
+
+        .progress-label {
+            font-size: 12px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<!-- AOS CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+
+<!-- AOS JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<!-- Initialize AOS -->
+<script>
+    AOS.init({
+        duration: 1000, // Animation duration
+        once: true, // Whether animation should happen only once - while scrolling down
+    });
+</script>
+{% endblock %}

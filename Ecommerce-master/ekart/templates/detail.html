@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}
+Detail: {{ item.title }}
+{% endblock title %}
+
+{% block content %}
+<!-- Main Content -->
+<div class="container-fluid my-5" style="padding-top: 80px; padding-bottom: 50px;">
+    <!-- Full-Width Product Image with AOS Animation -->
+    <div class="row mb-4" data-aos="fade-up" data-aos-duration="1000">
+        <div class="col-12 text-center p-0">
+            <img class="img-fluid rounded shadow-sm" src="{{ item.image.url }}" alt="Product Image" style="width: 100%; height: auto; max-height: 500px; object-fit: contain;">
+        </div>
+    </div>
+
+    <!-- Product Details -->
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <!-- Product Title and Category -->
+                <h4 class="mb-3 text-primary" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="100">{{ item.description }}</h4>
+                <small class="text-muted" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="150">({{ item.category.name }})</small>
+
+                <!-- Price and Offer Price with AOS Animation -->
+                <div data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">
+                    {% if item.offer_price and item.offer_price < item.price %}
+                    <h3 class="my-3 font-weight-bold">
+                        <span class="text-decoration-line-through text-muted">₹{{ item.price }}</span>
+                        <span class="text-success">₹{{ item.offer_price }}</span>
+                    </h3>
+                    {% else %}
+                    <h3 class="my-3 font-weight-bold">₹{{ item.price }}</h3>
+                    {% endif %}
+                </div>
+
+                <!-- Stock and Add to Cart Button with AOS Animation -->
+                <div data-aos="fade-up" data-aos-duration="1000" data-aos-delay="250">
+                    {% if item.stock_quantity > 0 %}
+                    <p class="text-success font-weight-bold my-3">In Stock: {{ item.stock_quantity }} available</p>
+                    <a href="{% url 'add_to_cart' item.id %}">
+                        <button type="button" class="btn btn-lg btn-primary">Add to Cart</button>
+                    </a>
+                    {% else %}
+                    <p class="text-danger font-weight-bold my-3">Out of Stock</p>
+                    {% endif %}
+                </div>
+
+                <!-- Product Launch Date with AOS Animation -->
+                <ul class="list-unstyled my-3 text-center" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="300">
+                    <li><strong>Launched At:</strong> {{ item.date_time|date:"F j, Y" }}</li>
+                </ul>
+
+                <!-- Dynamic Product Details with AOS Animation -->
+                <div class="product-details my-4" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="350">
+                    <h5 class="text-muted">Product Details:</h5>
+                    <ul class="list-unstyled">
+                        <li><strong>Color:</strong> {{ item.color }}</li>
+                        <li><strong>Size:</strong> {{ item.size }}</li>
+                        <li><strong>Weight:</strong> {{ item.weight }}</li>
+                        <li><strong>Material:</strong> {{ item.material }}</li>
+                        <li><strong>Warranty:</strong> {{ item.warranty }}</li>
+                    </ul>
+                </div>
+
+                <!-- Related Products Section -->
+                <div data-aos="fade-up" data-aos-duration="1000" data-aos-delay="400">
+                    <p class="text-muted">Related Products:</p>
+                    <hr class="my-4" style="border-color: #e0e0e0;">
+
+                    <!-- Related Products Grid -->
+                    <div class="row">
+                        {% for related_product in related_products %}
+                        <div class="col-sm-6 col-md-4 my-3" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="{{ forloop.counter0|add:1 }}00">
+                            <div class="card shadow-sm border-0">
+                                <img class="card-img-top" src="{{ related_product.image.url }}" alt="Related Product" style="height: 200px; object-fit: contain;">
+                                <div class="card-body text-center">
+                                    <h5 class="text-primary">{{ related_product.title }}</h5>
+                                    <p class="card-text">{{ related_product.description|truncatechars:100 }}</p>
+                                    <h6>
+                                        {% if related_product.offer_price and related_product.offer_price < related_product.price %}
+                                        <span class="text-decoration-line-through text-muted">₹{{ related_product.price }}</span>
+                                        <span class="text-success">₹{{ related_product.offer_price }}</span>
+                                        {% else %}
+                                        ₹{{ related_product.price }}
+                                        {% endif %}
+                                    </h6>
+                                    <a href="{% url 'detail' slug=related_product.slug_url %}" class="btn btn-link text-decoration-none text-primary">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block styles %}
+<style>
+    /* Custom Card Styling */
+    .card {
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .card-img-top {
+        border-bottom: 1px solid #eee;
+    }
+    .card-body {
+        padding: 15px;
+    }
+    .card-title {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+    }
+    .card-text {
+        font-size: 0.9rem;
+        color: #666;
+    }
+    .text-success {
+        color: #28a745 !important;
+    }
+    .badge {
+        font-size: 0.8rem;
+    }
+
+    /* Custom Button Styling */
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #004085;
+    }
+
+    /* Custom Link Styling */
+    .btn-link {
+        color: #007bff;
+    }
+    .btn-link:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<!-- AOS CSS -->
+<link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+<!-- AOS JS -->
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+<script>
+    // Initialize AOS
+    AOS.init({
+        once: true, // Animations will only happen once
+    });
+</script>
+{% endblock %}
+
+{% endblock %}

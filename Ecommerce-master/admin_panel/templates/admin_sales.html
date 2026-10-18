@@ -1,0 +1,140 @@
+{% extends "basetemplate.html" %}
+{% block title %}Sales{% endblock %}
+
+{% block content %}
+<!-- AOS CSS -->
+<link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
+<div class="container-fluid">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header mb-4" data-aos="fade-up" data-aos-duration="1000">
+        <h1>Sales</h1>
+        <p class="text-muted">View and manage sales records</p>
+    </div>
+
+    <!-- Sales Table -->
+    <div class="card shadow-sm" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="100">
+        <div class="card-body">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Total Price</th>
+                        <th>Status</th>
+                        <th>Estimated Delivery</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Loop over sales records from context -->
+                    {% for sale in sales %} 
+                   <tr >
+                        <td>{{ sale.order.order_id }}</td>
+                        <td>{{ sale.order.user }}</td>
+                        <td>{{ sale.product.title }}</td>
+                        <td>{{ sale.quantity }}</td>
+                        <td>₹{{ sale.total_price }}</td>
+                        <td>
+                            <!-- Display status and provide options to change it -->
+                            <form method="POST" action="{% url 'update_order_status' sale.order.id %}">
+                                {% csrf_token %}
+                                <select name="status" class="form-select" onchange="this.form.submit()">
+                                    <option value="Pending" {% if sale.order.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                    <option value="Processing" {% if sale.order.status == 'Processing' %}selected{% endif %}>Processing</option>
+                                    <option value="Shipped" {% if sale.order.status == 'Shipped' %}selected{% endif %}>Shipped</option>
+                                    <option value="Delivered" {% if sale.order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                    <option value="Cancelled" {% if sale.order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                </select>
+                            </form>
+                        </td>
+                        <td>
+                            <!-- Estimated Delivery Date -->
+                            <form method="POST" action="{% url 'update_delivery_date' sale.order.id %}">
+                                {% csrf_token %}
+                                <input type="date" name="estimated_delivery_date" class="form-control" value="{{ sale.order.estimated_delivery_date }}" onchange="this.form.submit()">
+                            </form>
+                        </td>
+                        <td>
+                            <!-- Print Receipt Button -->
+                            <a href="{% url 'print_receipt' sale.order.order_id %}" class="btn btn-success btn-sm" target="_blank">
+                                <i class="fas fa-print"></i> Print Receipt
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">No sales records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- AOS JS -->
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+<script>
+    // Initialize AOS
+    AOS.init({
+        once: true, // Animations will only happen once
+    });
+</script>
+
+<!-- Optional: Add custom styles -->
+<style>
+    /* Table Styling */
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #f9f9f9;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .table th, .table td {
+        padding: 12px;
+        vertical-align: middle;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+
+    /* Card Styling */
+    .card {
+        border: none;
+        border-radius: 8px;
+    }
+
+    .card-header {
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    /* Button Styling */
+    .btn-success {
+        transition: all 0.3s ease;
+    }
+
+    .btn-success:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+    }
+
+    /* Form Styling */
+    .form-select, .form-control {
+        border: 1px solid #e0e0e0;
+        border-radius: 5px;
+        padding: 8px;
+    }
+
+    .form-select:focus, .form-control:focus {
+        border-color: #007bff;
+        box-shadow: none;
+    }
+</style>
+{% endblock %}

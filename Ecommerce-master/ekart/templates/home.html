@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Main Container -->
+<div class="container-fluid mt-3">
+    <!-- Search Bar Section -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-12">
+            <form method="get" action="" class="d-flex shadow-sm p-3 bg-white rounded">
+                <!-- Category Dropdown -->
+               
+
+                <!-- Search Input -->
+                <input 
+                    class="form-control me-2" 
+                    type="search" 
+                    placeholder="Search for products..." 
+                    aria-label="Search" 
+                    name="search" 
+                    value="{{ request.GET.search|default:'' }}">
+
+                <!-- Search Button -->
+                <button class="btn btn-outline-primary" type="submit">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Sidebar for Categories -->
+        <div class="col-md-3" data-aos="fade-right" data-aos-duration="1000">
+            <div class="card shadow-sm p-3 mb-4">
+                <h5 class="mb-3">Categories</h5>
+                <ul class="list-unstyled">
+                    {% for category in categories %}
+                    <li class="mb-2">
+                        <a href="?category={{ category.id }}" class="text-decoration-none text-dark">
+                            {{ category.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Carousel Section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div id="sidebarCarousel" class="carousel slide" data-bs-ride="carousel">
+                        <!-- Carousel Inner -->
+                        <div class="carousel-inner">
+                            {% for slide in slides %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <img 
+                                    src="{{ slide.image.url }}" 
+                                    class="d-block w-100" 
+                                    alt="{{ slide.caption|default:'Advertisement' }}" 
+                                    style="object-fit: cover; height: 400px;">
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Carousel Controls -->
+                        <button class="carousel-control-prev" type="button" data-bs-target="#sidebarCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#sidebarCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="col-md-9">
+            <!-- Sorting Options -->
+            <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-up" data-aos-duration="1000">
+                <h4>Products</h4>
+                <div>
+                    <select class="form-select" id="sortBy" aria-label="Sort By">
+                        <option value="" selected>Sort By</option>
+                        <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="popularity" {% if request.GET.sort == 'popularity' %}selected{% endif %}>Popularity</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="row">
+                {% for item in page_obj %}
+                <div class="col-md-3 col-sm-6 col-12 mb-4" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="{{ forloop.counter0|add:1 }}00">
+                    <div class="card h-100 shadow-sm">
+                        <a href="{% url 'detail' slug=item.slug_url %}" class="text-decoration-none text-dark">
+                            <img 
+                                src="{{ item.image.url }}" 
+                                class="card-img-top" 
+                                alt="{{ item.title }}" 
+                                style="height: 200px; object-fit: contain;">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ item.title }}</h5>
+                                <p class="card-text">{{ item.description|truncatechars:80 }}</p>
+                                <div>
+                                    <h6>
+                                        {% if item.offer_price %}
+                                        <span class="text-muted text-decoration-line-through">₹{{ item.price }}</span>
+                                        <span class="text-success">₹{{ item.offer_price }}</span>
+                                        {% else %}
+                                        ₹{{ item.price }}
+                                        {% endif %}
+                                    </h6>
+                                    <!-- Display Average Rating -->
+                                    <div class="rating">
+                                        {% with avg_rating=item.average_rating|default:3.5 %}
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= avg_rating %}
+                                                <span class="star">★</span>
+                                            {% else %}
+                                                <span class="star">☆</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <span class="rating-value">({{ avg_rating|floatformat:1 }})</span>
+                                        {% endwith %}
+                                    </div>
+                                    {% if item.stock == 0 %}
+                                    <span class="badge bg-danger">Out of Stock</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            <div class="row justify-content-center mt-4" data-aos="fade-up" data-aos-duration="1000">
+                {% if page_obj.has_other_pages %}
+                <nav>
+                    <ul class="pagination">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page=1" aria-label="First">
+                                &laquo; First
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                &lsaquo; Previous
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                        </li>
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page={{ page_obj.next_page_number }}" aria-label="Next">
+                                Next &rsaquo;
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                                Last &raquo;
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block styles %}
+<style>
+    /* Custom Pagination Styles */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        padding: 10px 0;
+    }
+    .pagination .page-item {
+        margin: 0 5px;
+    }
+    .pagination .page-link {
+        color: #f3a847; /* Yellowish orange color */
+        background-color: transparent;
+        border: 1px solid #f3a847;
+        font-size: 1rem;
+    }
+    .pagination .page-link:hover {
+        color: white;
+        background-color: #f3a847;
+        border-color: #f3a847;
+    }
+    .pagination .page-item.disabled .page-link {
+        color: #ccc;
+        border-color: #ccc;
+    }
+
+    /* Custom Orange Button */
+    .btn-orange {
+        background-color: #f3a847;
+        border-color: #f3a847;
+        color: white;
+    }
+    .btn-orange:hover {
+        background-color: #e6953e;
+        border-color: #e6953e;
+        color: white;
+    }
+
+    /* Card Styling */
+    .card {
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .card-img-top {
+        border-bottom: 1px solid #eee;
+    }
+    .card-body {
+        padding: 15px;
+    }
+    .card-title {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+    }
+    .card-text {
+        font-size: 0.9rem;
+        color: #666;
+    }
+    .text-success {
+        color: #28a745 !important;
+    }
+    .badge {
+        font-size: 0.8rem;
+    }
+
+    /* Rating Stars */
+    .rating {
+        color: #f3a847;
+        font-size: 1.2rem;
+    }
+    .rating .star {
+        cursor: pointer;
+    }
+    .rating-value {
+        font-size: 0.9rem;
+        color: #666;
+    }
+    
+    /* Search Form Styling */
+    .bg-white {
+        background-color: white !important;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<!-- AOS CSS -->
+<link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+<!-- AOS JS -->
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+<script>
+    // Initialize AOS
+    AOS.init({
+        once: true, // Animations will only happen once
+    });
+
+    // Sorting Functionality
+    document.getElementById('sortBy').addEventListener('change', function() {
+        const sortValue = this.value;
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        if (sortValue) {
+            urlParams.set('sort', sortValue);
+        } else {
+            urlParams.delete('sort');
+        }
+        
+        window.location.href = window.location.pathname + '?' + urlParams.toString();
+    });
+</script>
+{% endblock %}
+{% endblock %}
